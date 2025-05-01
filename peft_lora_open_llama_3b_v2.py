@@ -15,7 +15,7 @@ import mlflow
 from huggingface_hub.hf_api import HfFolder 
 
 
-HUGGINGFACEHUB_API_TOKEN = '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'
+HUGGINGFACEHUB_API_TOKEN = ''
 HfFolder.save_token(HUGGINGFACEHUB_API_TOKEN)
 
 """
