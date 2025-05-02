@@ -1,0 +1,39 @@
+import torch
+from transformers import BartTokenizer, BartForConditionalGeneration
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load model and tokenizer
+model_name = "facebook/bart-base"
+model = BartForConditionalGeneration.from_pretrained(model_name, output_attentions=True)
+tokenizer = BartTokenizer.from_pretrained(model_name)
+
+# Input sentence
+input_sentence = "I do not know what you mean."
+
+# Tokenize input
+inputs = tokenizer(input_sentence, return_tensors="pt")
+output = model.generate(**inputs, output_attentions=True, return_dict_in_generate=True)
+
+# Decode the output
+generated_ids = output.sequences
+decoded_output = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+
+# Get encoder self-attention from the last layer
+with torch.no_grad():
+    outputs = model(**inputs)
+    attention = outputs.encoder_attentions[-1]  # shape: (batch, num_heads, seq_len, seq_len)
+
+# Average across heads
+avg_attention = attention[0].mean(dim=0).cpu().numpy()
+
+# Get token labels
+tokens = tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
+
+# Plot attention
+plt.figure(figsize=(10, 8))
+sns.heatmap(avg_attention, xticklabels=tokens, yticklabels=tokens, cmap="viridis")
+plt.title("Average Encoder Attention (Last Layer)")
+plt.xlabel("Key Tokens")
+plt.ylabel("Query Tokens")
+plt.show()
